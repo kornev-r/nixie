@@ -5,11 +5,11 @@
  *      Author: ru
  */
 
-#include "statemachine.h"\
+#include "statemachine.h"
 
 volatile DisplayState DISPLAY_STATE = dsIndTime;
 
-void stateMachine()
+void stateMachine(void)
 {
 	switch (DISPLAY_STATE) {
 	case dsIndTime : //Индикация времени
@@ -20,5 +20,12 @@ void stateMachine()
 		break;
 	default:
 		break;
+	}
+}
+
+void run(void)
+{
+	while(1) {
+		stateMachine();
 	}
 }

@@ -24,6 +24,8 @@ typedef enum {
 	dsSetOptSound
 } DisplayState;
 
-void stateMachine();
+void stateMachine(void);
+
+void run(void);
 
 #endif /* STATEMACHINE_H_ */
