@@ -7,6 +7,8 @@
 
 #include "statemachine.h"
 
+#include "display.h"
+
 volatile DisplayState DISPLAY_STATE = dsIndTime;
 
 void stateMachine(void)
@@ -23,9 +25,16 @@ void stateMachine(void)
 	}
 }
 
+void init(void)
+{
+	configureDisplay();
+}
+
 void run(void)
 {
+	setDisplayData(1234);
 	while(1) {
-		stateMachine();
+		indicate();
+		//stateMachine();
 	}
 }

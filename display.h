@@ -3,6 +3,9 @@
  *
  *  Created on: 1 февр. 2018 г.
  *      Author: ru
+ *
+ *  Для дисплея используются пины 0-5 порта B для анодных ключей. 0-3 отвечают за цифры, 4, 5 - за точки.
+ *  Пины 4-7 порта D используются для управления дешифратором
  */
 
 #ifndef DISPLAY_H_
@@ -33,14 +36,11 @@
 //Сдвиг позиции для дин. индикации
 void shiftPos(void);
 
-//Целочисленное возведение в степень
-uint16_t ipow(uint16_t a, uint16_t e);
+void configureDisplay();
 
-//Получить текущую отображаемую цифруs
-uint8_t getDigit(uint16_t d);
-
+void setDisplayData(uint16_t d);
 //Индикация
-void indicate(uint16_t d, uint8_t df, uint8_t pf);
+void indicate();
 
 
 #endif /* DISPLAY_H_ */

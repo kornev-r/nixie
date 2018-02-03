@@ -10,6 +10,8 @@
 #include <avr/io.h>
 #include <math.h>
 
+#include "datastruct/datetimedata.h"
+
 //Порт управления анодными ключами
 #define D_AN_PORT PORTB
 //Порт управления дешифратором
@@ -24,31 +26,34 @@ typedef enum {
 
 volatile CurPos CUR_POS = cp1;
 
-uint8_t DISP_BUF[4];
+volatile DisplayData DISPLAY;
+
+void configureDisplay()
+{
+	//Настраиваем порт для работы с анодными ключами
+	DDRB |= (1 << DDB0) | (1 << DDB1) | (1 << DDB2) | (1 << DDB3) | (1 << DDB4) | (1 << DDB5);
+	//Настраиваем порт D для работы с дешифратором
+	DDRD |= (1 << DDD4) | (1 << DDD5) | (1 << DDD6) | (1 << DDD7);
+}
 
 void shiftPos(void)
 {
 	if (++CUR_POS > cp4) CUR_POS = cp1;
 }
 
-uint16_t ipow(uint16_t a, uint16_t e)
+void setDisplayData(uint16_t d)
 {
-	uint16_t r = a;
-	for (uint16_t i = 0; i < e; i++) r *= a;
-	return r;
+	DISPLAY.data = d;
+	DISPLAY.dDigits = getDigits(d);
 }
 
-void getDigits(uint16_t d)
+void indicate()
 {
-	uint16_t dd = d;
-	uint8_t i = 0;
-	while (dd) {
-		DISP_BUF[i++] = dd % 10;
-		dd /= 10;
-	}
+	//Пишем цифру в дешифратор
+	PORTD |= DISPLAY.dDigits.d[CUR_POS];
+	//Включаем нужный ключ
+	PORTB |= (1 << CUR_POS);
+	//Сдвигаем позицию
+	shiftPos();
 }
 
-void indicate(uint16_t d, uint8_t df, uint8_t pf)
-{
-
-}

@@ -8,7 +8,12 @@
 #include "statemachine.h"
 
 int main(void) {
+
+	init();
+
+
 	run();
+
 	return 0;
 }
 

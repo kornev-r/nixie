@@ -26,6 +26,8 @@ typedef enum {
 
 void stateMachine(void);
 
+void init(void);
+
 void run(void);
 
 #endif /* STATEMACHINE_H_ */
