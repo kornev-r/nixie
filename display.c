@@ -17,6 +17,12 @@
 //Порт управления дешифратором
 #define D_DC_PORT PORTD
 
+#define D_DC_MASK 0xF0u
+
+#define D_AN_DIG_MASK 0x0Fu
+
+#define D_AN_POINT_MASK 0x30u
+
 typedef enum {
 	cp1 = 0,
 	cp2,
@@ -49,10 +55,12 @@ void setDisplayData(uint16_t d)
 
 void indicate()
 {
-	//Пишем цифру в дешифратор
-	PORTD |= DISPLAY.dDigits.d[CUR_POS];
-	//Включаем нужный ключ
-	PORTB |= (1 << CUR_POS);
+	//Устанавливаем цифру на дешифраторе
+	uint8_t pd = PIND & (~D_DC_MASK);
+	PORTD = (DISPLAY.dDigits.d[CUR_POS] << 4) | pd;
+	//Включаем отображение
+	uint8_t pb = PINB & (~D_AN_DIG_MASK);
+	PORTB = (1 << CUR_POS) | pb;
 	//Сдвигаем позицию
 	shiftPos();
 }
