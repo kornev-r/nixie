@@ -38,9 +38,10 @@ void shiftPos(void);
 
 void configureDisplay();
 
-void setDisplayData(uint16_t d);
+void setDisplayData16(uint16_t d);
+void setDisplayData(uint8_t h, uint8_t l);
 //Индикация
 void indicate();
-
+void point(uint8_t on);
 
 #endif /* DISPLAY_H_ */

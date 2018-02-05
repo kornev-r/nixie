@@ -27,7 +27,7 @@ uint16_t ipow(uint16_t a, uint16_t e)
 
 Digits getDigits(uint16_t dt)
 {
-	Digits dd;
+	Digits dd = {{0,0,0,0}};
 	uint8_t i = 0;
 	while (dt) {
 		dd.d[i++] = dt % 10;

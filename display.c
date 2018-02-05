@@ -47,10 +47,22 @@ void shiftPos(void)
 	if (++CUR_POS > cp4) CUR_POS = cp1;
 }
 
-void setDisplayData(uint16_t d)
+void setDisplayData16(uint16_t d)
 {
 	DISPLAY.data = d;
 	DISPLAY.dDigits = getDigits(d);
+}
+
+void setDisplayData(uint8_t h, uint8_t l)
+{
+	setDisplayData16(h * 100 + l);
+}
+
+void point(uint8_t on)
+{
+	if (on) PORTB |= (1 << PORTB4) | (1 << PORTB5);
+	else PORTB &= ~((1 << PORTB4) | (1 << PORTB5));
+
 }
 
 void indicate()
