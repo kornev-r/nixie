@@ -3,6 +3,23 @@
  *
  *  Created on: 1 февр. 2018 г.
  *      Author: ru
+	point(1);
+	configureTimer();
+	ds1307_init();
+	rtcSync();
+	point(0);
+
+}
+
+void run(void)
+{
+	setDisplayData(RTC_DATA.hour, RTC_DATA.minute);
+	while(1) {
+		indicate();
+		if (blink) {
+			blink = 0;
+			rtcSync();
+			setDisplayData(RTC_DATA.hour, RTC_DATA.minute);
  */
 
 #include "statemachine.h"
@@ -12,15 +29,16 @@
 
 #include "3rdparty/ds1307/ds1307.h"
 
-#include "display.h"
 #include "datastruct/datetimedata.h"
+#include "display.h"
+#include "appconfig.h"
 
 
 extern RtcDataItem RTC_DATA;
 
 volatile DisplayState DISPLAY_STATE = dsIndTime;
 
-volatile uint8_t blink = 0;
+volatile uint8_t TIMER_SHOT = 0;
 
 void stateMachine(void)
 {
@@ -64,7 +82,7 @@ ISR(TIMER1_COMPA_vect)
 	//Период - полсекунды
 //	OCR1AH = 0x3D;
 //	OCR1AL = 0x09;
-	blink = 1;
+	TIMER_SHOT = 1;
 }
 
 uint8_t pt = 0;
@@ -80,19 +98,20 @@ void init(void)
 
 }
 
+void timerShot()
+{
+	rtcSync();
+	setDisplayData(RTC_DATA.hour, RTC_DATA.minute, DIG_ALL_SHOW, POINT_ALL_BLINK);
+	blink();
+	TIMER_SHOT = 0;
+}
+
 void run(void)
 {
-	setDisplayData(RTC_DATA.hour, RTC_DATA.minute);
+	setDisplayData(RTC_DATA.hour, RTC_DATA.minute, DIG_ALL_SHOW, POINT_ALL_BLINK);
 	while(1) {
 		indicate();
-		if (blink) {
-			blink = 0;
-			rtcSync();
-			setDisplayData(RTC_DATA.hour, RTC_DATA.minute);
-			point(pt);
-			pt = !pt;
-
-		}
+		if (TIMER_SHOT) timerShot();
 		_delay_us(1500);
 		//stateMachine();
 	}

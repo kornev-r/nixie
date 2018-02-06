@@ -34,6 +34,8 @@ volatile CurPos CUR_POS = cp1;
 
 volatile DisplayData DISPLAY;
 
+volatile uint8_t BLINK_STATE = 0;
+
 void configureDisplay()
 {
 	//Настраиваем порт для работы с анодными ключами
@@ -47,15 +49,17 @@ void shiftPos(void)
 	if (++CUR_POS > cp4) CUR_POS = cp1;
 }
 
-void setDisplayData16(uint16_t d)
+void setDisplayData16(uint16_t d, uint8_t flags, uint8_t pFlags)
 {
 	DISPLAY.data = d;
 	DISPLAY.dDigits = getDigits(d);
+	DISPLAY.flags = flags;
+	DISPLAY.pointFlags = pFlags;
 }
 
-void setDisplayData(uint8_t h, uint8_t l)
+void setDisplayData(uint8_t h, uint8_t l, uint8_t flags, uint8_t pFlags)
 {
-	setDisplayData16(h * 100 + l);
+	setDisplayData16(h * 100 + l, flags, pFlags);
 }
 
 void point(uint8_t on)
@@ -71,9 +75,17 @@ void indicate()
 	uint8_t pd = PIND & (~D_DC_MASK);
 	PORTD = (DISPLAY.dDigits.d[CUR_POS] << 4) | pd;
 	//Включаем отображение
-	uint8_t pb = PINB & (~D_AN_DIG_MASK);
-	PORTB = (1 << CUR_POS) | pb;
+	uint8_t pb = PINB & ~(D_AN_DIG_MASK | D_AN_POINT_MASK);
+	uint8_t df = DISPLAY.flags & 0x0F;
+	uint8_t bf = (DISPLAY.flags >> 4) & (BLINK_STATE ? 0x0F : 0x00);
+	uint8_t upf = ((DISPLAY.pointFlags & POINT_U_SHOW) > 0) || (((DISPLAY.pointFlags & POINT_U_BLINK) > 0) && BLINK_STATE);
+	uint8_t dpf = ((DISPLAY.pointFlags & POINT_D_SHOW) > 0) || (((DISPLAY.pointFlags & POINT_D_BLINK) > 0) && BLINK_STATE);
+	PORTB = ((1 << CUR_POS) & (df | bf)) | (upf << PORTB4) | (dpf << PORTB5) | pb;
 	//Сдвигаем позицию
 	shiftPos();
 }
 
+void blink(void)
+{
+	BLINK_STATE = !BLINK_STATE;
+}

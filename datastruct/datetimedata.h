@@ -17,6 +17,8 @@ typedef struct Digits{
 typedef struct DisplayData {
 	uint16_t data;
 	Digits dDigits;
+	uint8_t flags;
+	uint8_t pointFlags;
 } DisplayData;
 
 typedef struct RtcDataItem {
