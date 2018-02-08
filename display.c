@@ -23,6 +23,9 @@
 
 #define D_AN_POINT_MASK 0x30u
 
+#define BCD_LO(x) x & 0x0F
+#define BCD_HI(x) x  >> 4
+
 typedef enum {
 	cp1 = 0,
 	cp2,
@@ -30,9 +33,7 @@ typedef enum {
 	cp4
 } CurPos;
 
-volatile CurPos CUR_POS = cp1;
-
-volatile DisplayData DISPLAY;
+volatile CurPos CUR_POS;
 
 volatile uint8_t BLINK_STATE = 0;
 
@@ -49,17 +50,11 @@ void shiftPos(void)
 	if (++CUR_POS > cp4) CUR_POS = cp1;
 }
 
-void setDisplayData16(uint16_t d, uint8_t flags, uint8_t pFlags)
+void setDisplayData(uint8_t* pData, uint8_t flags, uint8_t pFlags)
 {
-	DISPLAY.data = d;
-	DISPLAY.dDigits = getDigits(d);
+	DISPLAY.pData = pData;
 	DISPLAY.flags = flags;
 	DISPLAY.pointFlags = pFlags;
-}
-
-void setDisplayData(uint8_t h, uint8_t l, uint8_t flags, uint8_t pFlags)
-{
-	setDisplayData16(h * 100 + l, flags, pFlags);
 }
 
 void point(uint8_t on)
@@ -73,7 +68,14 @@ void indicate()
 {
 	//Устанавливаем цифру на дешифраторе
 	uint8_t pd = PIND & (~D_DC_MASK);
-	PORTD = (DISPLAY.dDigits.d[CUR_POS] << 4) | pd;
+	uint8_t pdd = 0;
+	switch (CUR_POS) {
+	case cp1 : pdd = BCD_LO(*(DISPLAY.pData)); break;
+	case cp2 : pdd = BCD_HI(*(DISPLAY.pData)); break;
+	case cp3 : pdd = BCD_LO(*(DISPLAY.pData + 1)); break;
+	case cp4 : pdd = BCD_HI(*(DISPLAY.pData + 1)); break;
+	}
+	PORTD = (pdd << 4) | pd;
 	//Включаем отображение
 	uint8_t pb = PINB & ~(D_AN_DIG_MASK | D_AN_POINT_MASK);
 	uint8_t df = DISPLAY.flags & 0x0F;

@@ -122,4 +122,21 @@ void ds1307_getdate(uint8_t *year, uint8_t *month, uint8_t *day, uint8_t *hour, 
 	i2c_stop();
 }
 
+void ds1307_getdatebcd(uint8_t *year, uint8_t *month, uint8_t *day, uint8_t *hour, uint8_t *minute, uint8_t *second)
+{
+	i2c_start_wait(DS1307_ADDR | I2C_WRITE);
+	i2c_write(0x00);//stop oscillator
+	i2c_stop();
+
+	i2c_rep_start(DS1307_ADDR | I2C_READ);
+	*second = i2c_readAck() & 0x7F;
+	*minute = i2c_readAck();
+	*hour = i2c_readAck();
+	i2c_readAck();
+	*day = i2c_readAck();
+	*month = i2c_readAck();
+	*year = i2c_readNak();
+	i2c_stop();
+}
+
 

@@ -9,8 +9,8 @@
 #define APPCONFIG_H_
 
 #define TIME_SHOW_PERIOD 40
-#define DATE_SHOW_PERION 20
-#define TEMP_SHOW_PERION 20
+#define DATE_SHOW_PERIOD 10
+#define TEMP_SHOW_PERIOD 10
 
 
 #endif /* APPCONFIG_H_ */

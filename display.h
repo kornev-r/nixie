@@ -49,8 +49,7 @@ void shiftPos(void);
 
 void configureDisplay();
 
-void setDisplayData16(uint16_t d, uint8_t flags, uint8_t pFlags);
-void setDisplayData(uint8_t h, uint8_t l, uint8_t flags, uint8_t pFlags);
+void setDisplayData(uint8_t* pd, uint8_t flags, uint8_t pFlags);
 //Индикация
 void indicate();
 void blink();

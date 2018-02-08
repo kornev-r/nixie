@@ -11,12 +11,11 @@
 #include <stdint.h>
 
 typedef struct Digits{
-	uint8_t d[4];
+	uint8_t* pd;
 } Digits;
 
 typedef struct DisplayData {
-	uint16_t data;
-	Digits dDigits;
+	uint8_t* pData;
 	uint8_t flags;
 	uint8_t pointFlags;
 } DisplayData;
@@ -46,16 +45,29 @@ typedef struct DateTimeData {
 
 } DateTimeData;
 
-uint8_t isEqual(DateTimeData left, DateTimeData right);
+//uint8_t isEqual(DateTimeData left, DateTimeData right);
+//
+////Целочисленное возведение в степень
+//uint16_t ipow(uint16_t a, uint16_t e);
+//
+////Получить текущую отображаемую цифруs
+//Digits getDigits(uint16_t dt);
+//
+//void fillDateTimeData(DateTimeData* dt);
 
-//Целочисленное возведение в степень
-uint16_t ipow(uint16_t a, uint16_t e);
+//RtcDataItem RTC_DATA;
+uint8_t RTC_DATA[6];
 
-//Получить текущую отображаемую цифруs
-Digits getDigits(uint16_t dt);
+uint8_t* P_RTC_D_SECOND;
+uint8_t* P_RTC_D_MINUTE;
+uint8_t* P_RTC_D_HOUR;
+uint8_t* P_RTC_D_DAY;
+uint8_t* P_RTC_D_MONTH;
+uint8_t* P_RTC_D_YEAR;
 
-void fillDateTimeData(DateTimeData* dt);
+uint8_t* P_RTC_DS_TIME;
+uint8_t* P_RTC_DS_DATE;
 
-RtcDataItem RTC_DATA;
+volatile DisplayData DISPLAY;
 
 #endif /* DATASTRUCT_DATETIMEDATA_H_ */
