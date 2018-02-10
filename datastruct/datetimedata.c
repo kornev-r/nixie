@@ -8,6 +8,7 @@
 #include "datetimedata.h"
 
 uint8_t RTC_DATA[6] = {0};
+uint8_t TEMP_DATA[2] = {0};
 
 uint8_t* P_RTC_D_SECOND = &RTC_DATA[0];
 uint8_t* P_RTC_D_MINUTE = &RTC_DATA[1];
@@ -19,40 +20,5 @@ uint8_t* P_RTC_D_YEAR = &RTC_DATA[5];
 uint8_t* P_RTC_DS_TIME = &RTC_DATA[1];
 uint8_t* P_RTC_DS_DATE = &RTC_DATA[3];
 
-
-//uint8_t isEqual(DateTimeData left, DateTimeData right)
-//{
-//	uint8_t res = 1;
-//
-//	res &= left.fDate == right.fDate;
-//	res &= left.fTime == right.fTime;
-//	res &= left.fYear == right.fYear;
-//
-//	return res;
-//}
-
-//uint16_t ipow(uint16_t a, uint16_t e)
-//{
-//	uint16_t r = a;
-//	for (uint16_t i = 0; i < e; i++) r *= a;
-//	return r;
-//}
-//
-//Digits getDigits(uint16_t dt)
-//{
-//	Digits dd = {{0,0,0,0}};
-//	uint8_t i = 0;
-//	while (dt) {
-//		dd.d[i++] = dt % 10;
-//		dt /= 10;
-//	}
-//	return dd;
-//}
-//
-//void fillDateTimeData(DateTimeData* dt)
-//{
-//	dt->dDate = getDigits(dt->fDate);
-//	dt->dTime = getDigits(dt->fTime);
-//	dt->dYear = getDigits(dt->fYear);
-//}
-
+uint8_t* P_TEMP_DATA = &TEMP_DATA[1];
+uint8_t* P_TEMP_DS_DATA = &TEMP_DATA[0];

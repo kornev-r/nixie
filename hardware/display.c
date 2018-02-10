@@ -10,7 +10,7 @@
 #include <avr/io.h>
 #include <math.h>
 
-#include "datastruct/datetimedata.h"
+#include "datetimedata.h"
 
 //Порт управления анодными ключами
 #define D_AN_PORT PORTB
@@ -55,13 +55,6 @@ void setDisplayData(uint8_t* pData, uint8_t flags, uint8_t pFlags)
 	DISPLAY.pData = pData;
 	DISPLAY.flags = flags;
 	DISPLAY.pointFlags = pFlags;
-}
-
-void point(uint8_t on)
-{
-	if (on) PORTB |= (1 << PORTB4) | (1 << PORTB5);
-	else PORTB &= ~((1 << PORTB4) | (1 << PORTB5));
-
 }
 
 void indicate()

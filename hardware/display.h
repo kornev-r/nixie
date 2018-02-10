@@ -53,7 +53,6 @@ void setDisplayData(uint8_t* pd, uint8_t flags, uint8_t pFlags);
 //Индикация
 void indicate();
 void blink();
-void point(uint8_t on)
 
 #endif /* DISPLAY_H_ */
 ;

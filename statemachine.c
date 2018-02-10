@@ -3,23 +3,6 @@
  *
  *  Created on: 1 февр. 2018 г.
  *      Author: ru
-	point(1);
-	configureTimer();
-	ds1307_init();
-	rtcSync();
-	point(0);
-
-}
-
-void run(void)
-{
-	setDisplayData(RTC_DATA.hour, RTC_DATA.minute);
-	while(1) {
-		indicate();
-		if (blink) {
-			blink = 0;
-			rtcSync();
-			setDisplayData(RTC_DATA.hour, RTC_DATA.minute);
  */
 
 #include "statemachine.h"
@@ -28,56 +11,79 @@ void run(void)
 #include <avr/interrupt.h>
 
 #include "3rdparty/ds1307/ds1307.h"
-
 #include "datastruct/datetimedata.h"
-#include "display.h"
+#include "hardware/display.h"
+#include "hardware/dstemp.h"
+#include "hardware/buzzer.h"
+#include "hardware/buttons.h"
+
 #include "appconfig.h"
 
-volatile DisplayState DISPLAY_STATE = dsIndTime;
+volatile DisplayState DISPLAY_STATE = dsPost;
 
-volatile uint8_t TIMER_SHOT = 0;
 volatile uint16_t TIMER_TICKS = 0;
+volatile uint8_t TEMP_STATE = 0;
+
+void post(void)
+{
+	uint8_t d[2];
+	uint8_t* pd = &d[0];
+	for (uint8_t i = 0; i < 10; i++) {
+		d[0] = d[1] = (i | i << 4);
+		beep();
+		setDisplayData(pd, DIG_ALL_SHOW, POINT_ALL_SHOW);
+		_delay_ms(300);
+	}
+}
+
+void setDisplayState(DisplayState ds)
+{
+	DISPLAY_STATE = ds;
+	switch (ds) {
+		case dsIndTime :
+			setDisplayData(P_RTC_DS_TIME, DIG_ALL_SHOW, POINT_ALL_BLINK);
+			break;
+		case dsIndDate :
+			setDisplayData(P_RTC_DS_DATE, DIG_ALL_SHOW, POINT_D_SHOW);
+			break;
+		case dsIndTemp :
+			setDisplayData(P_TEMP_DS_DATA, DIG_3_SHOW | DIG_4_SHOW, POINT_U_SHOW);
+			break;
+		default:
+			break;
+	}
+	TIMER_TICKS = 0;
+}
 
 void stateMachine(void)
 {
-	switch (DISPLAY_STATE) {
-	case dsIndTime : //Индикация времени
-		setDisplayData(P_RTC_DS_TIME, DIG_ALL_SHOW, POINT_ALL_BLINK);
-		if (TIMER_TICKS >= TIME_SHOW_PERIOD) {
-			DISPLAY_STATE = dsIndDate;
-			TIMER_TICKS = 0;
-		}
-		break;
-	case dsIndDate : //Индикация даты
-		setDisplayData(P_RTC_DS_DATE, DIG_ALL_SHOW, POINT_D_SHOW);
-		if (TIMER_TICKS >= DATE_SHOW_PERIOD) {
-			DISPLAY_STATE = dsIndTemp;
-			TIMER_TICKS = 0;
-		}
-
-		break;
-	case dsIndTemp : //Индикация температуры
-		setDisplayData(P_RTC_DS_DATE, DIG_ALL_SHOW, POINT_U_SHOW);
-		if (TIMER_TICKS >= TEMP_SHOW_PERIOD) {
-			DISPLAY_STATE = dsIndTime;
-			TIMER_TICKS = 0;
-		}
-		break;
-	default:
-		break;
+	if (DISPLAY_STATE == dsIndTime && TIMER_TICKS >= TIME_SHOW_PERIOD) {
+		setDisplayState(dsIndDate);
+	} else if (DISPLAY_STATE == dsIndDate && TIMER_TICKS >= DATE_SHOW_PERIOD) {
+		setDisplayState(dsIndTemp);
+	} else if (DISPLAY_STATE == dsIndTemp && TIMER_TICKS >= TEMP_SHOW_PERIOD) {
+		setDisplayState(dsIndTime);
+	} else if (DISPLAY_STATE == dsPost) {
+		post();
+		setDisplayState(dsIndTime);
 	}
 }
 
 void rtcSync(void)
 {
-//	*P_RTC_D_SECOND = 0x92;
-//	*P_RTC_D_MINUTE = 0x86;
-//	*P_RTC_D_HOUR = 0x56;
-//	*P_RTC_D_DAY = 0x78;
-//	*P_RTC_D_MONTH= 0x12;
-//	*P_RTC_D_YEAR = 0x34;
-
 	ds1307_getdatebcd(P_RTC_D_YEAR, P_RTC_D_MONTH, P_RTC_D_DAY, P_RTC_D_HOUR, P_RTC_D_MINUTE, P_RTC_D_SECOND);
+}
+
+void tempSync(void)
+{
+	TEMP_STATE++;
+	if (TEMP_STATE == 1) { //Запрос на измерение температуры
+		startMeasure();
+	} else if (TEMP_STATE == 2) {
+		uint8_t t = readMeasure();
+		*P_TEMP_DATA = (t + 6 * (t / 10));
+		TEMP_STATE = 0;
+	}
 }
 
 void configureTimer(void)
@@ -92,19 +98,16 @@ void configureTimer(void)
 	//Делитель 256
 	TCCR1B |= (1 << CS12);
 	//Период - полсекунды
-	OCR1AH = 0x3D;
-	OCR1AL = 0x09;
+	OCR1AH = 0x00;
+	OCR1AL = 0x1F;
 	//Разрешаем прерывания
 	sei();
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-	//Период - полсекунды
-//	OCR1AH = 0x3D;
-//	OCR1AL = 0x09;
-	TIMER_SHOT = 1;
-	TIMER_TICKS++;
+	indicate();
+	readButtons();
 }
 
 uint8_t pt = 0;
@@ -113,25 +116,46 @@ void init(void)
 {
 	configureDisplay();
 	configureTimer();
+	configureTempSensor();
+	configureBuzzer();
+	configureButtons();
 	ds1307_init();
 	rtcSync();
 }
 
-void timerShot()
+void halfSecFuncs(void)
 {
 	rtcSync();
-//	setDisplayData(P_RTC_DS_TIME, DIG_ALL_SHOW, POINT_ALL_BLINK);
+	tempSync();
 	blink();
-	TIMER_SHOT = 0;
 }
+
+void fastFuncs(void)
+{
+	if (IS_B_MENU_PRESSED) beep();
+}
+
+uint16_t FAST_TICKS = 0;
 
 void run(void)
 {
 	setDisplayData(P_RTC_DS_TIME, DIG_ALL_SHOW, POINT_ALL_BLINK);
+
 	while(1) {
-		stateMachine();
-		indicate();
-		if (TIMER_SHOT) timerShot();
-		_delay_us(1500);
+
+		FAST_TICKS++;
+		if (FAST_TICKS > 50) {
+
+			halfSecFuncs();
+			stateMachine();
+
+			TIMER_TICKS++;
+			FAST_TICKS = 0;
+		}
+
+		fastFuncs();
+
+		_delay_ms(10);
+
 	}
 }

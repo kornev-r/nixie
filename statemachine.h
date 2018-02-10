@@ -12,6 +12,7 @@
  * Состояния конечного автомата
  */
 typedef enum {
+	dsPost,
 	dsIndTime,
 	dsIndDate,
 	dsIndTemp,
