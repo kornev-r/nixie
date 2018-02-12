@@ -18,6 +18,6 @@ void configureBuzzer(void)
 void beep(void)
 {
 	PORTC |= (1 << PORTC0);
-	_delay_ms(100);
+	_delay_ms(50);
 	PORTC &= ~(1 << PORTC0);
 }

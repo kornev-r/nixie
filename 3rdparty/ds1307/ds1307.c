@@ -139,4 +139,39 @@ void ds1307_getdatebcd(uint8_t *year, uint8_t *month, uint8_t *day, uint8_t *hou
 	i2c_stop();
 }
 
+uint8_t ds1307_setdatebcd(uint8_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute, uint8_t second)
+{
+	//sanitize data
+	if (second < 0 || second > 0x59 ||
+		minute < 0 || minute > 0x59 ||
+		hour < 0 || hour > 0x23 ||
+		day < 0x01 || day > 0x31 ||
+		month < 0x01 || month > 0x12 ||
+		year < 0 || year > 0x99)
+		return 8;
+
+	//sanitize day based on month
+	if(ds1307_bcd2dec(day) > pgm_read_byte(ds1307_daysinmonth + month - 1))
+		return 0;
+
+	//get day of week
+	uint8_t dayofweek = ds1307_getdayofweek(ds1307_bcd2dec(year), ds1307_bcd2dec(month), ds1307_bcd2dec(day));
+
+	//write date
+	i2c_start_wait(DS1307_ADDR | I2C_WRITE);
+	i2c_write(0x00);//stop oscillator
+	i2c_write(second);
+	i2c_write(minute);
+	i2c_write(hour);
+	i2c_write(ds1307_dec2bcd(dayofweek));
+	i2c_write(day);
+	i2c_write(month);
+	i2c_write(year);
+	i2c_write(0x00); //start oscillator
+	i2c_stop();
+
+	return 1;
+
+}
+
 
