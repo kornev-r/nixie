@@ -10,7 +10,7 @@
 #include <avr/io.h>
 #include <math.h>
 
-#include "datetimedata.h"
+#include "../datastruct/datetimedata.h"
 
 //Порт управления анодными ключами
 #define D_AN_PORT PORTB
